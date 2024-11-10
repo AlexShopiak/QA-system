@@ -59,7 +59,7 @@ npm install
 npm run dev
 ```
 
-- Open the application in your browser at this address and enjoy.
+- Open the application in your browser at this address:
 ```bash
 http://localhost:5173
 ```
