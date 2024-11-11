@@ -42,14 +42,14 @@ export const chunkTextSimple = (text) => {
 
 
 /**
- * Splits text into chunks of sentences with a total length of up to 700 characters.
+ * Splits text into chunks of sentences with a total length of up to 1000 characters.
  * 
  * @function chunkText
  * @param {string} text - The input text to be chunked.
  * @returns {Array<Object>} - An array of chunked objects, each containing an `id` and `text`.
  */
 export const chunkText = (text) => {
-  const maxTokens = 700;
+  const maxTokens = 1000;
   const sentences = text.split('. ');
   const chunks = [];
   
@@ -69,7 +69,7 @@ export const chunkText = (text) => {
       }
   }
 
-  //Add last chunk if it didnt reach 700 symbols
+  //Add last chunk if it didnt reach 1000 symbols
   if (currentChunk) {
     chunks.push({ id: `chunk_${counter}`, text: currentChunk }); 
   }
