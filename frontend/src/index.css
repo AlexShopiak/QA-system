@@ -1,0 +1,29 @@
+/* Resetting margins and padding for all elements */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Overall app appearance */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #dcdcdc;
+  color: #333;
+  line-height: 1.6;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  margin: 50px;
+}
+
+/* Inner app container appearance*/
+#root {
+  width: 100%;
+  max-width: 800px;               
+  padding: 20px;
+  background-color: white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
