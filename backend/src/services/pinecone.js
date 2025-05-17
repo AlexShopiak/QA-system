@@ -16,7 +16,7 @@ const index = pc.Index(process.env.PINECONE_INDEX_NAME);
  * @throws {Error} - Throws an error if Pinecone cannot be initialized.
  */
 export const initializePinecone = async () => {
-    const indexExists = await pc.describeIndex("documents");
+    const indexExists = await pc.describeIndex(process.env.PINECONE_INDEX_NAME);
 
     if (!indexExists) {
         await pc.createIndex({
@@ -99,8 +99,11 @@ export const retrieveRelevantChunksFromPinecone = async (question) => {
  * @throws {Error} - Throws an error if there is an issue clearing the Pinecone index.
  */
 export const clearPineconeIndex = async ()=> {
-    try {
-        await index.deleteAll();
+    try { 
+        const ids = await index.listPaginated();
+        for (const vec of ids.vectors) {
+            await index.deleteOne(vec.id)
+        }
         console.log("Pinecone: index cleared.");
     } catch (error) {
         console.error("Error clearing Pinecone index:", error);
