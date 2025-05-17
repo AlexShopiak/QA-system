@@ -16,7 +16,13 @@ const index = pc.Index(process.env.PINECONE_INDEX_NAME);
  * @throws {Error} - Throws an error if Pinecone cannot be initialized.
  */
 export const initializePinecone = async () => {
-    const indexExists = await pc.describeIndex(process.env.PINECONE_INDEX_NAME);
+    const indexList = await pc.listIndexes();
+
+    let indexExists = false;
+    for (const index of indexList.indexes) {
+        if(index.name === process.env.PINECONE_INDEX_NAME) indexExists = true;
+    }
+    console.log("Pinecone: index exist -", indexExists);
 
     if (!indexExists) {
         await pc.createIndex({
@@ -27,6 +33,7 @@ export const initializePinecone = async () => {
                 serverless: { cloud: 'aws', region: 'us-east-1' }
             }
         });
+        console.log("Pinecone: index created");
     }
 	console.log("Pinecone: initialized.");
 };
