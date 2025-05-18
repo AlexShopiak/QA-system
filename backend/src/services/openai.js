@@ -42,9 +42,8 @@ export const generateOneEmbeddingWithGPT = async (text) => {
 export const generateChunksEmbeddingsWithGPT = async (chunks) => {
     const embeddings = await Promise.all(
         chunks.map(async (chunk) => {
-            // Enhance chunk text with recognized entities for better context
-            const textWithEntities = `${chunk.text} ${chunk.entities.join(" ")}`;
-            const vector = await generateOneEmbeddingWithGPT(textWithEntities);
+            const textWithMeta = `${chunk.entities.join(" ")} ${chunk.topics.join(" ")} ${chunk.text}`;
+            const vector = await generateOneEmbeddingWithGPT(textWithMeta);
             return { id: chunk.id, vector, metadata: chunk };
         })
     );
@@ -65,7 +64,7 @@ export const generateChunksEmbeddingsWithGPT = async (chunks) => {
 export const queryGPT = async (prompt) => {
     try {
         const response = await openai.chat.completions.create({
-            model: "gpt-4",
+            model: "gpt-3.5-turbo-0125", //"gpt-4",
             messages: [
                 { role: "system", content: "You are an assistant that responds only based on the context provided." },
                 { role: "user", content: prompt },

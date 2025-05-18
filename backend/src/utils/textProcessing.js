@@ -1,6 +1,8 @@
 import { queryGPT } from '../services/openai.js';
 import pdfParse from 'pdf-parse';
 import nlp from "compromise";
+import lda from 'lda';
+
 
 /**
  * Extracts text from a buffer based on the file type (PDF or plain text).
@@ -25,20 +27,20 @@ export const extractText = async (buffer, filename) => {
 
 
 /**
- * Splits text into chunks of 3 sentences each. Not in use now
+ * Cleans the input text by removing excessive whitespace and non-informative characters.
  * 
- * @function chunkTextSimple
- * @param {string} text - The input text to be chunked.
- * @returns {Array<Object>} - An array of chunked objects, each containing an `id` and `text`.
+ * @function cleanText
+ * @param {string} text - The input text to be cleaned.
+ * @returns {string} - The cleaned text.
  */
-export const chunkTextSimple = (text) => {
-    const sentences = text.split('. ');
-    const chunks = [];
-    for (let i = 0; i < sentences.length; i += 3) {
-      chunks.push({ id: `chunk_${i}`, text: sentences.slice(i, i + 3).join('. ') });
-    }
-    return chunks;
-};
+export const cleanText = (text) => {
+    // Remove whitespaces
+    let cleanedText = text.replace(/\s+/g, ' ').trim(); 
+    //Remove non-informative characters like emoji or excessive punctuation
+    cleanedText = cleanedText.replace(/[^\w\s,.?!]/g, '');
+    
+    return cleanedText;
+}
 
 
 /**
@@ -79,23 +81,6 @@ export const chunkText = (text) => {
 
 
 /**
- * Cleans the input text by removing excessive whitespace and non-informative characters.
- * 
- * @function cleanText
- * @param {string} text - The input text to be cleaned.
- * @returns {string} - The cleaned text.
- */
-export const cleanText = (text) => {
-    // Remove whitespaces
-    let cleanedText = text.replace(/\s+/g, ' ').trim(); 
-    //Remove non-informative characters like emoji or excessive punctuation
-    cleanedText = cleanedText.replace(/[^\w\s,.?!]/g, '');
-    
-    return cleanedText;
-}
-
-
-/**
  * Extracts named entities (people, places, organizations) from the input text.
  * 
  * @function getEntitiesFromText
@@ -115,6 +100,41 @@ export const getEntitiesFromText = (text) => {
 
 
 /**
+ * Extracts topics from the input text.
+ * 
+ * @function getEntitiesFromText
+ * @param {string} text - The input text from which topics are to be extracted.
+ * @returns {Array<string>} - An array of topics.
+ */
+export const getTopicsFromText = (text) => {
+    const sentences = text.match( /[^\.!\?]+[\.!\?]+/g );
+    const topicsArr = lda(sentences, 1, 5)[0];   
+    const topics = [];
+    for (const el of topicsArr) {
+      topics.push(el.term);
+    }
+    return topics;
+}
+
+
+/**
+ * Splits text into chunks of 3 sentences each. Not in use now
+ * 
+ * @function chunkTextSimple
+ * @param {string} text - The input text to be chunked.
+ * @returns {Array<Object>} - An array of chunked objects, each containing an `id` and `text`.
+ */
+/*
+export const chunkTextSimple = (text) => {
+    const sentences = text.split('. ');
+    const chunks = [];
+    for (let i = 0; i < sentences.length; i += 3) {
+      chunks.push({ id: `chunk_${i}`, text: sentences.slice(i, i + 3).join('. ') });
+    }
+    return chunks;
+};*/
+
+/**
  * Extracts named entities (people, places, organizations) from the input text using GPT-4. Not in use now
  * @async
  * @function getEntitiesFromTextWithGPT
@@ -123,6 +143,7 @@ export const getEntitiesFromText = (text) => {
  * @throws {Error} - Throws an error if the GPT API call or entity parsing fails.
  * 
  */
+/*
 export const getEntitiesFromTextWithGPT = async (text) => {
   const prompt = `
     Analyze the following text and extract named entities. Provide the results in JSON format with the following keys:
@@ -159,4 +180,4 @@ export const getEntitiesFromTextWithGPT = async (text) => {
       organizations: []
     };
   }
-};
+};*/

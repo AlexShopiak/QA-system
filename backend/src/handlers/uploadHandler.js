@@ -1,7 +1,7 @@
-import { extractText, chunkText, cleanText, getEntitiesFromText} from '../utils/textProcessing.js';
+import { extractText, chunkText, cleanText, getEntitiesFromText, getTopicsFromText} from '../utils/textProcessing.js';
 import { saveEmbeddingsToPinecone, clearPineconeIndex } from '../services/pinecone.js';
 import { generateChunksEmbeddingsWithGPT } from '../services/openai.js';
-import { runTopicModeling } from '../services/topicModeling.js';
+import { timestamp } from '../utils/timestamp.js'
 
 /**
  * Handles the document upload request, processes the document, and stores embeddings in Pinecone.
@@ -30,31 +30,28 @@ export const handleUpload = async (req, res, next) => {
         const text = await extractText(buffer, originalname);
         const cleanedText = cleanText(text);
         const chunks = chunkText(cleanedText);
+        console.log(timestamp(), "App: text chunked");
 
-        // Perform NER on each chunk
-        const chunksAfterNER = await Promise.all(chunks.map(async (chunk) => {
-            const entities = await getEntitiesFromText(chunk.text);
-            // Include recognized entities in the chunk metadata
-            return { ...chunk, entities };
-        }));
-
+        // Perform NER and TopicModeling on each chunk
+        const chunksWithMeta = chunks.map((chunk) => {
+            const entities = getEntitiesFromText(chunk.text);
+            const topics = getTopicsFromText(chunk.text);
+            return { ...chunk, entities, topics };
+        });
+        console.log(timestamp(), "App: meta added");
+        
         // Generate embeddings
-        const embeddings = await generateChunksEmbeddingsWithGPT(chunksAfterNER);
+        const embeddings = await generateChunksEmbeddingsWithGPT(chunksWithMeta);
+        console.log(timestamp(), "OpenAI: embeddings generated");
 
         //Clear previous vectors
         await clearPineconeIndex();
+        console.log(timestamp(), "Pinecone: index cleared");
 
         // Save embeddings to Pinecone
         await saveEmbeddingsToPinecone(embeddings);
-
-        // Run Python script to model topics for each chunk
-        for(let i = 0; i < embeddings.length; i++) {
-            const id = embeddings[i].metadata.id;
-            const text = [embeddings[i].metadata.text];
-
-            const result = await runTopicModeling(id, text);
-            console.log('Extracted Topics:', result);
-        }
+        console.log(timestamp(), "Pinecone: embeddings saved");
+        console.log("======================================");
 
         res.json({ message: 'Document processed successfully' });
     } catch (error) {

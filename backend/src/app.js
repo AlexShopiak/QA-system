@@ -6,6 +6,7 @@ import cors from 'cors';
 import { initializePinecone } from './services/pinecone.js';
 import { handleUpload } from './handlers/uploadHandler.js';
 import { handleQA } from './handlers/qaHandler.js';
+import { timestamp } from './utils/timestamp.js';
 
 dotenv.config();
 
@@ -15,6 +16,7 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 await initializePinecone();
+console.log(timestamp(), "Pinecone: initialized.");
 
 app.use(cors({
   origin: 'http://localhost:5173',
@@ -31,5 +33,5 @@ app.use((err, req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
+  console.log(timestamp(), `Server is running on http://localhost:${port}`);
 });

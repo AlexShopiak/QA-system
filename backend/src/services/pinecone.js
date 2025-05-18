@@ -1,5 +1,6 @@
 import { Pinecone } from '@pinecone-database/pinecone';
 import { generateOneEmbeddingWithGPT } from '../services/openai.js';
+import { timestamp } from '../utils/timestamp.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -22,7 +23,7 @@ export const initializePinecone = async () => {
     for (const index of indexList.indexes) {
         if(index.name === process.env.PINECONE_INDEX_NAME) indexExists = true;
     }
-    console.log("Pinecone: index exist -", indexExists);
+    console.log(timestamp(), "Pinecone: index exist -", indexExists);
 
     if (!indexExists) {
         await pc.createIndex({
@@ -33,9 +34,8 @@ export const initializePinecone = async () => {
                 serverless: { cloud: 'aws', region: 'us-east-1' }
             }
         });
-        console.log("Pinecone: index created");
+        console.log(timestamp(), "Pinecone: index created");
     }
-	console.log("Pinecone: initialized.");
 };
 
 
@@ -88,7 +88,7 @@ export const retrieveRelevantChunksFromPinecone = async (question) => {
     const relevantChunks = result.matches.filter((match) => match.score >= minScoreThreshold)
 
     if (relevantChunks.length === 0) {
-        console.log("Pinecone: no relevant chunks found.");
+        console.log(timestamp(), "Pinecone: no relevant chunks found.");
         return [];
     }
 
@@ -111,7 +111,6 @@ export const clearPineconeIndex = async ()=> {
         for (const vec of ids.vectors) {
             await index.deleteOne(vec.id)
         }
-        console.log("Pinecone: index cleared.");
     } catch (error) {
         console.error("Error clearing Pinecone index:", error);
     }
