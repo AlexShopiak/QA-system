@@ -37,7 +37,10 @@ export const cleanText = (text) => {
     // Remove whitespaces
     let cleanedText = text.replace(/\s+/g, ' ').trim(); 
     //Remove non-informative characters like emoji or excessive punctuation
-    cleanedText = cleanedText.replace(/[^\w\s,.?!]/g, '');
+    //cleanedText = cleanedText.replace(/[^\w\s,.?!]/g, '');
+
+    // Keep letters (Unicode), digits, spaces, punctuation
+    cleanedText = cleanedText.replace(/[^\p{L}\p{N}\s,.?!]/gu, '');
     
     return cleanedText;
 }
@@ -108,8 +111,14 @@ export const getEntitiesFromText = (text) => {
  */
 export const getTopicsFromText = (text) => {
     const sentences = text.match( /[^\.!\?]+[\.!\?]+/g );
-    const topicsArr = lda(sentences, 1, 5)[0];   
+    if (!sentences || sentences.length === 0) return [];
+
+    const ldaResult = lda(sentences, 1, 5); 
+    if (!Array.isArray(ldaResult) || !Array.isArray(ldaResult[0])) return [];
+
+    const topicsArr = ldaResult[0];
     const topics = [];
+    
     for (const el of topicsArr) {
       topics.push(el.term);
     }
