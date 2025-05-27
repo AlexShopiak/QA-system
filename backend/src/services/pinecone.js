@@ -48,22 +48,22 @@ export const initializePinecone = async () => {
  * @throws {Error} - Throws an error if the embedding upsert operation fails.
  */
 export const saveEmbeddingsToPinecone = async (embeddings) => {
-    await index.upsert(embeddings);
-    await waitUntilRecordsEqual(embeddings.length);
-    
-    /*for (let i = 0; i < embeddings.length; i++){
+    //await index.upsert(embeddings);
 
-        const upsertRequest = [{
-            id: embeddings[i].id,
-            values: embeddings[i].vector,
-            metadata: { 
-                ...embeddings[i].metadata,
-                entities: embeddings[i].metadata.entities || []
-            },
-        }];
-    
-        await index.upsert(upsertRequest);
-    }*/
+    const upsertResponse = await fetch(`https://${process.env.PINCONE_HOST_NAME}/vectors/upsert`, {
+        method: "POST",
+        headers: {
+            "Api-Key": process.env.PINCONE_API_KEY,
+            "Content-Type": "application/json",
+            "X-Pinecone-API-Version": "2025-04"
+        },
+        body: JSON.stringify({
+            vectors: embeddings,
+        })
+    })
+
+    const upsertLSN = parseInt(upsertResponse.headers.get('x-pinecone-request-lsn'));
+    return upsertLSN;
 };
 
 
@@ -110,32 +110,38 @@ export const retrieveRelevantChunksFromPinecone = async (question) => {
  */
 export const clearPineconeIndex = async () => {
     try {   
-        await index.deleteAll(); 
-        await waitUntilRecordsEqual(0);
+        //await index.deleteAll();  //resets SLN to zero
+        //await waitUntilRecordsEqual(0);
         
-        /*const ids = await index.listPaginated();
+        const ids = await index.listPaginated();
         for (const vec of ids.vectors) {
             await index.deleteOne(vec.id)
-        }*/
+        }
     } catch (error) {
         console.error("Error clearing Pinecone index:", error);
     }
 }
 
-// dodge async Pinecone operation delays
-const waitUntilRecordsEqual = async (targetValue) => {
-    if (targetValue === -1) throw new Error("Invalid target. -1");
-    try {   
-        let len = -1; 
-        let count = 0;
-        while (len !== targetValue) {
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            const ids = await index.listPaginated();
-            len = ids.vectors.length;
-            count++;
-        }
-        console.log("COUNT", count);
-        } catch (error) {
-        console.error("Error fetching record count:", error);
-    }
-}
+export const LSNQueryToPinecone = async () => {
+    const testVector = new Array(1536).fill(0);
+    testVector[0]=1;
+
+    const queryResponse =  await fetch(`https://${process.env.PINCONE_HOST_NAME}/query`, {
+        method: "POST",
+        headers: {
+            "Api-Key": process.env.PINCONE_API_KEY,
+            "Content-Type": "application/json",
+            "X-Pinecone-API-Version": "2025-04"
+        },
+        body: JSON.stringify({
+            vector: testVector,
+            namespace:"__default__",
+            topK: 3,
+            includeValues: true,
+        })
+    })
+    
+    const queryLSN = parseInt(queryResponse.headers.get('x-pinecone-max-indexed-lsn'));
+    return queryLSN;
+};
+

@@ -1,5 +1,5 @@
 import { extractText, chunkText, cleanText, getEntitiesFromText, getTopicsFromText} from '../utils/textProcessing.js';
-import { saveEmbeddingsToPinecone, clearPineconeIndex } from '../services/pinecone.js';
+import { saveEmbeddingsToPinecone, clearPineconeIndex, LSNQueryToPinecone } from '../services/pinecone.js';
 import { generateChunksEmbeddingsWithGPT } from '../services/openai.js';
 import { timestamp } from '../utils/timestamp.js'
 
@@ -49,7 +49,14 @@ export const handleUpload = async (req, res, next) => {
         console.log(timestamp(), "Pinecone: index cleared");
 
         // Save embeddings to Pinecone
-        await saveEmbeddingsToPinecone(embeddings);
+        const saveLSN = await saveEmbeddingsToPinecone(embeddings);
+        console.log("S", saveLSN);
+        while (true) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            const queryLSN = await LSNQueryToPinecone();
+            console.log("Q", queryLSN);
+            if (queryLSN >= saveLSN) break;
+        }
         console.log(timestamp(), "Pinecone: embeddings saved");
         console.log("======================================");
 
