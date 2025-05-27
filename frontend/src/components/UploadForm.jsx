@@ -7,6 +7,7 @@ const UploadForm = ({ setAnswer, setContext}) => {
   const [status, setStatus] = useState('');
 
   const handleFileChange = (event) => {
+    setStatus('');
     setFile(event.target.files[0]);
   };
 
