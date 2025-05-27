@@ -48,7 +48,8 @@ export const initializePinecone = async () => {
  * @throws {Error} - Throws an error if the embedding upsert operation fails.
  */
 export const saveEmbeddingsToPinecone = async (embeddings) => {
-    for (let i = 0; i < embeddings.length; i++){
+    await index.upsert(embeddings);
+    /*for (let i = 0; i < embeddings.length; i++){
 
         const upsertRequest = [{
             id: embeddings[i].id,
@@ -60,7 +61,7 @@ export const saveEmbeddingsToPinecone = async (embeddings) => {
         }];
     
         await index.upsert(upsertRequest);
-    }
+    }*/
 };
 
 
