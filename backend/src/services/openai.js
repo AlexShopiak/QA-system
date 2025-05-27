@@ -44,7 +44,7 @@ export const generateChunksEmbeddingsWithGPT = async (chunks) => {
         chunks.map(async (chunk) => {
             const textWithMeta = `${chunk.entities.join(" ")} ${chunk.topics.join(" ")} ${chunk.text}`;
             const vector = await generateOneEmbeddingWithGPT(textWithMeta);
-            return { id: chunk.id, vector, metadata: chunk };
+            return { id: chunk.id, values: vector, metadata: chunk };
         })
     );
     return embeddings;
