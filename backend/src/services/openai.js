@@ -66,7 +66,7 @@ export const queryGPT = async (prompt) => {
         const response = await openai.chat.completions.create({
             model: "gpt-3.5-turbo-0125", //"gpt-4",
             messages: [
-                { role: "system", content: "You are an assistant that responds only based on the context provided." },
+                { role: "system", content: "You are an assistant that responds only based on the context provided. Even if it is a well known fact you dont unswer it if it is not in the context. Respond in the language you was asked" },
                 { role: "user", content: prompt },
             ],
         });
